@@ -1,18 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { WebApiItem } from '../interpreter/types';
+import { usePalette } from '../lib/theme';
 import Panel from './Panel';
 
 /** Web APIs — async operations in flight (timers with countdowns). */
 export default function WebApis({ items }: { items: WebApiItem[] }) {
+  const S = usePalette().signals.api;
   return (
-    <Panel
-      title="Web APIs"
-      accent="bg-apiHue"
-      count={items.length}
-      hint="Timers run here, then hand their callback to the macrotask queue"
-      className="min-h-[140px]"
-    >
-      <div className="flex flex-col gap-1.5">
+    <Panel tag="Web APIs" meta="async" accent={S.color} count={items.length} className="h-full">
+      <div className="flex h-full flex-col gap-1.5 overflow-auto">
         <AnimatePresence initial={false}>
           {items.map((item) => {
             const pct =
@@ -23,23 +19,26 @@ export default function WebApis({ items }: { items: WebApiItem[] }) {
               <motion.div
                 key={item.id}
                 layout
-                initial={{ opacity: 0, x: -16 }}
+                initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 16 }}
+                exit={{ opacity: 0, x: 12 }}
                 transition={{ type: 'spring', stiffness: 480, damping: 34 }}
-                className="rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 py-2"
+                className="rounded-[2px] border px-2.5 py-1.5"
+                style={{ borderColor: S.border, borderLeftWidth: 3, borderLeftColor: S.color, background: S.tint }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-emerald-200">{item.label}</span>
+                  <span className="truncate text-[11px] text-ink">{item.label}</span>
                   {item.remaining != null && (
-                    <span className="font-mono text-[11px] text-emerald-300/80">
-                      {item.remaining}ms
+                    <span className="ml-2 shrink-0 text-[10px] tabular-nums" style={{ color: S.color }}>
+                      t−{item.remaining}ms
                     </span>
                   )}
                 </div>
-                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-emerald-900/60">
+                {/* Countdown rule, drafted as a thin ticked bar. */}
+                <div className="mt-1.5 h-[3px] w-full bg-ink/10">
                   <motion.div
-                    className="h-full rounded-full bg-emerald-400"
+                    className="h-full"
+                    style={{ background: S.color }}
                     animate={{ width: `${(1 - pct) * 100}%` }}
                     transition={{ type: 'tween', duration: 0.25 }}
                   />
@@ -49,7 +48,9 @@ export default function WebApis({ items }: { items: WebApiItem[] }) {
           })}
         </AnimatePresence>
         {items.length === 0 && (
-          <p className="py-5 text-center text-xs text-slate-500">no async work in flight</p>
+          <p className="select-none py-5 text-center text-[11px] uppercase tracking-widest text-inkFaint">
+            ┄ idle ┄
+          </p>
         )}
       </div>
     </Panel>

@@ -1,23 +1,26 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { usePalette } from '../lib/theme';
+import RegistrationTicks from './RegistrationTicks';
 
-/** Collapsible "How the event loop works" help panel. */
+/** Collapsible "How the event loop works" reference, drafted as a schematic note. */
 export default function Legend() {
+  const { signals } = usePalette();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-xl border border-slate-700/60 bg-slate-900/60">
+    <div className="relative rounded-draft border border-ink bg-panel font-mono shadow-draft">
+      <RegistrationTicks />
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold text-slate-200"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-[0.14em] text-ink"
       >
-        <span className="text-slate-400">{open ? '▾' : '▸'}</span>
+        <span className="text-inkSoft">{open ? '▾' : '▸'}</span>
         How the event loop works
-        <span className="ml-auto flex items-center gap-2 text-[11px] font-normal text-slate-500">
-          <Dot className="bg-stackHue" /> stack
-          <Dot className="bg-apiHue" /> web&nbsp;api
-          <Dot className="bg-microHue" /> micro
-          <Dot className="bg-macroHue" /> macro
+        <span className="ml-auto flex items-center gap-2">
+          {(['stack', 'api', 'micro', 'macro'] as const).map((k) => (
+            <Key key={k} color={signals[k].color} label={signals[k].label} />
+          ))}
         </span>
       </button>
       <AnimatePresence initial={false}>
@@ -28,26 +31,32 @@ export default function Legend() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <ol className="space-y-1.5 px-4 pb-3 text-[13px] leading-relaxed text-slate-400">
-              <li>
-                <b className="text-slate-200">1. Sync first.</b> Synchronous code runs to completion —
-                the call stack fully drains before anything async happens.
-              </li>
-              <li>
-                <b className="text-slate-200">2. Web APIs.</b> <code>setTimeout</code> /{' '}
-                <code>fetch</code> hand work to the browser. When a timer elapses its callback is
-                placed on the <span className="text-macroHue">macrotask queue</span>.
-              </li>
-              <li>
-                <b className="text-slate-200">3. Drain microtasks.</b> Once the stack is empty, the{' '}
-                <span className="text-microHue">entire microtask queue</span> (Promise callbacks,{' '}
-                <code>queueMicrotask</code>) is emptied — including microtasks queued by microtasks.
-              </li>
-              <li>
-                <b className="text-slate-200">4. Render</b>, then pull exactly{' '}
-                <span className="text-macroHue">one macrotask</span> and repeat from step&nbsp;3.
-              </li>
-            </ol>
+            <div className="border-t border-ink/15 px-3 pb-3 pt-2">
+              <ol className="space-y-1.5 text-[12px] leading-relaxed text-inkSoft">
+                <Step n="1" title="Sync first">
+                  synchronous code runs to completion — the call stack fully drains before anything
+                  async happens.
+                </Step>
+                <Step n="2" title="Web APIs">
+                  <code className="text-apiHue">setTimeout</code> hands work to the browser; when a
+                  timer elapses its callback lands on the{' '}
+                  <span className="font-bold text-macroHue">macrotask</span> queue.
+                </Step>
+                <Step n="3" title="Drain microtasks">
+                  once the stack is empty, the{' '}
+                  <span className="font-bold text-microHue">entire microtask</span> queue empties —
+                  including microtasks queued by microtasks.
+                </Step>
+                <Step n="4" title="Render + one macro">
+                  the browser paints, then exactly{' '}
+                  <span className="font-bold text-macroHue">one macrotask</span> runs, and the loop
+                  repeats from step 3.
+                </Step>
+              </ol>
+              <p className="mt-2 font-annotate text-[15px] leading-none text-stackHue/80">
+                ↳ the loop never blocks — it just keeps turning.
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -55,6 +64,22 @@ export default function Legend() {
   );
 }
 
-function Dot({ className }: { className: string }) {
-  return <span className={`inline-block h-2 w-2 rounded-full ${className}`} />;
+function Step({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
+  return (
+    <li className="flex gap-2">
+      <span className="select-none font-bold text-ink">{n}.</span>
+      <span>
+        <b className="text-ink">{title}.</b> {children}
+      </span>
+    </li>
+  );
+}
+
+function Key({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="hidden items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-inkSoft md:flex">
+      <span className="h-2 w-2 rounded-[1px]" style={{ background: color }} />
+      {label}
+    </span>
+  );
 }

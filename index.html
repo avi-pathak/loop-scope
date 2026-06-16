@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./loop.svg" />
@@ -8,7 +8,25 @@
       name="description"
       content="LoopScope — an interactive visualizer of the JavaScript event loop, call stack, microtask and macrotask queues."
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
     <title>LoopScope — JS Event Loop Visualizer</title>
+    <script>
+      // Apply the saved/preferred theme before paint to avoid a flash.
+      (function () {
+        try {
+          var t = localStorage.getItem('loopscope-theme');
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          if (t === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

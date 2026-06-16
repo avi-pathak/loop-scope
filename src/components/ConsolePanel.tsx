@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ConsoleLine } from '../interpreter/types';
+import RegistrationTicks from './RegistrationTicks';
 
 const LEVEL_STYLE: Record<ConsoleLine['level'], string> = {
-  log: 'text-slate-200',
-  info: 'text-sky-300',
-  error: 'text-red-400',
+  log: 'text-ink',
+  info: 'text-apiHue',
+  error: 'text-red-700',
 };
 
-/** On-screen console output panel. */
+/** On-screen console rendered as a drafted log strip. */
 export default function ConsolePanel({ lines, error }: { lines: ConsoleLine[]; error: string | null }) {
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -17,35 +18,48 @@ export default function ConsolePanel({ lines, error }: { lines: ConsoleLine[]; e
   }, [lines.length, error]);
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-slate-700/60 bg-slate-950/70">
-      <header className="flex items-center gap-2 border-b border-slate-700/60 px-3 py-2">
-        <span className="h-2.5 w-2.5 rounded-full bg-slate-500" />
-        <h2 className="text-sm font-semibold tracking-wide text-slate-200">Console</h2>
-        <span className="ml-auto rounded-full bg-slate-800 px-2 py-0.5 text-xs font-mono text-slate-400">
-          {lines.length}
-        </span>
-      </header>
-      <div className="flex-1 overflow-auto p-3 font-mono text-[13px] leading-relaxed">
+    <section className="relative flex h-full flex-col rounded-draft border border-ink bg-panel font-mono shadow-draft">
+      <RegistrationTicks />
+      <div className="absolute -top-[9px] left-3 bg-panel px-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-ink">
+        <span className="text-ink/40">[ </span>CONSOLE<span className="text-ink/30"> · </span>
+        <span className="text-inkSoft">stdout</span>
+        <span className="text-ink/40"> ]</span>
+      </div>
+      <div
+        className="absolute -top-[10px] right-3 rounded-[2px] border bg-panel px-1.5 py-px text-[10px] font-bold tabular-nums text-ink"
+        style={{ borderColor: 'rgba(27,42,74,0.22)' }}
+      >
+        <span className="text-inkFaint">lines </span>
+        {lines.length}
+      </div>
+
+      <div className="flex-1 overflow-auto px-3 pb-2 pt-3 text-[12px] leading-relaxed">
         <AnimatePresence initial={false}>
-          {lines.map((line) => (
+          {lines.map((line, i) => (
             <motion.div
               key={line.id}
-              initial={{ opacity: 0, x: -8 }}
+              initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              className={`whitespace-pre-wrap ${LEVEL_STYLE[line.level]}`}
+              className="flex gap-2 whitespace-pre-wrap"
             >
-              <span className="select-none text-slate-600">› </span>
-              {line.text}
+              <span className="select-none tabular-nums text-inkFaint">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span className="select-none text-ink/30">▸</span>
+              <span className={LEVEL_STYLE[line.level]}>{line.text}</span>
             </motion.div>
           ))}
         </AnimatePresence>
         {error && (
-          <div className="mt-1 whitespace-pre-wrap rounded-md bg-red-500/10 px-2 py-1 text-red-400">
-            ⚠ {error}
+          <div className="mt-1 flex gap-2 whitespace-pre-wrap border-l-2 border-red-600 bg-red-600/5 px-2 py-1 text-red-700">
+            <span className="select-none font-bold">⚠ ERR</span>
+            <span>{error}</span>
           </div>
         )}
         {lines.length === 0 && !error && (
-          <p className="text-xs text-slate-600">console output appears here…</p>
+          <p className="select-none text-[11px] uppercase tracking-widest text-inkFaint">
+            ┄ awaiting output · press run ┄
+          </p>
         )}
         <div ref={endRef} />
       </div>

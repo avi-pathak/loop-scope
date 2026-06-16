@@ -15,8 +15,15 @@ interface ControlsProps {
   onPresetChange: (id: string) => void;
 }
 
-const btn =
-  'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40';
+const base =
+  'inline-flex items-center gap-1.5 rounded-[2px] border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors disabled:cursor-not-allowed disabled:opacity-35';
+
+// Outlined navy button (secondary).
+const outlined = `${base} border-ink/40 bg-panel text-ink hover:border-ink hover:bg-ink/5`;
+// Filled accent button (primary action only). Dark text on the brighter
+// dark-mode accents keeps the label readable in both themes.
+const primary = (hue: string) =>
+  `${base} border-transparent text-white dark:text-paper ${hue} hover:opacity-90`;
 
 export default function Controls({
   runState,
@@ -35,30 +42,29 @@ export default function Controls({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {isRunning ? (
-        <button className={`${btn} bg-amber-500/90 text-amber-50 hover:bg-amber-500`} onClick={onPause}>
-          ⏸ Pause
+        <button
+          className={primary('bg-macroHue')}
+          onClick={onPause}
+        >
+          ❚❚ Pause
         </button>
       ) : (
         <button
-          className={`${btn} bg-sky-500/90 text-sky-50 hover:bg-sky-500`}
+          className={primary('bg-stackHue')}
           onClick={onRun}
           disabled={runState === 'done'}
         >
           ▶ Run
         </button>
       )}
-      <button
-        className={`${btn} bg-slate-700 text-slate-100 hover:bg-slate-600`}
-        onClick={onStep}
-        disabled={isRunning || runState === 'done'}
-      >
-        ⏭ Step
+      <button className={outlined} onClick={onStep} disabled={isRunning || runState === 'done'}>
+        ▶▶ Step
       </button>
-      <button className={`${btn} bg-slate-700 text-slate-100 hover:bg-slate-600`} onClick={onReset}>
+      <button className={outlined} onClick={onReset}>
         ↺ Reset
       </button>
 
-      <label className="ml-1 flex items-center gap-2 text-xs text-slate-400">
+      <label className="ml-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-inkSoft">
         Speed
         <input
           type="range"
@@ -66,21 +72,26 @@ export default function Controls({
           max={100}
           value={speed}
           onChange={(e) => onSpeedChange(Number(e.target.value))}
-          className="h-1 w-28 cursor-pointer accent-sky-400"
+          className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-ink/20 accent-stackHue"
         />
       </label>
 
-      <select
-        value={presetId}
-        onChange={(e) => onPresetChange(e.target.value)}
-        className="ml-auto rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400"
-      >
-        {presets.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </select>
+      <div className="relative ml-auto">
+        <span className="pointer-events-none absolute -top-[7px] left-2 bg-paper px-1 text-[8px] font-bold uppercase tracking-[0.2em] text-inkFaint">
+          example
+        </span>
+        <select
+          value={presetId}
+          onChange={(e) => onPresetChange(e.target.value)}
+          className="rounded-[2px] border border-ink/40 bg-panel px-2 py-1.5 text-[11px] font-medium text-ink focus:border-ink focus:outline-none"
+        >
+          {presets.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

@@ -2,8 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   Theme palette as CSS variables. Colors are stored as space-separated RGB
+   channels so Tailwind's `rgb(var(--x) / <alpha-value>)` tokens (and our own
+   `rgb(var(--x) / 0.4)` usages) work everywhere. `.dark` on <html> flips the
+   whole palette to a classic "dark blueprint": light cyan ink on deep navy.
+--------------------------------------------------------------------------- */
 :root {
+  color-scheme: light;
+  --paper: 238 242 246;
+  --paper2: 244 246 248;
+  --panel: 247 249 252;
+  --ink: 27 42 74;
+  --ink-soft: 81 96 122;
+  --ink-faint: 138 151 174;
+  --stack: 57 73 171;
+  --api: 15 118 110;
+  --micro: 109 40 217;
+  --macro: 180 83 9;
+  --draft-shadow: rgba(27, 42, 74, 0.1);
+  --grid-alpha: 0.04;
+  --scroll-thumb: #c2cbda;
+}
+
+.dark {
   color-scheme: dark;
+  --paper: 18 21 27;
+  --paper2: 23 27 33;
+  --panel: 30 34 42;
+  --ink: 226 230 237;
+  --ink-soft: 154 163 178;
+  --ink-faint: 99 107 120;
+  --stack: 141 155 232;
+  --api: 92 187 173;
+  --micro: 179 150 232;
+  --macro: 224 168 90;
+  --draft-shadow: rgba(0, 0, 0, 0.5);
+  --grid-alpha: 0.05;
+  --scroll-thumb: #2c313b;
 }
 
 html,
@@ -14,35 +50,95 @@ body,
 }
 
 body {
-  background-color: #0b1120;
-  color: #e2e8f0;
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Drafting paper with a faint blueprint grid overlay (light ink lines in dark mode). */
+  background-color: rgb(var(--paper));
+  background-image:
+    linear-gradient(rgb(var(--ink) / var(--grid-alpha)) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--ink) / var(--grid-alpha)) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: rgb(var(--ink));
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-/* Thin custom scrollbars to keep the dark aesthetic clean. */
+/* Thin technical scrollbars. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: var(--scroll-thumb) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background-color: #334155;
-  border-radius: 8px;
+  background-color: var(--scroll-thumb);
+  border-radius: 2px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Highlight for the currently executing editor line (Monaco decoration). */
-.loopscope-current-line {
-  background: rgba(56, 189, 248, 0.16);
+/* ---------------------------------------------------------------------------
+   Editor active-line marker: a left-margin bracket "[" in the gutter,
+   not a full-width highlight band.
+--------------------------------------------------------------------------- */
+.loopscope-line-bracket {
+  margin-left: 4px;
+  border-left: 2px solid rgb(var(--stack));
+  position: relative;
 }
-.loopscope-current-line-margin {
-  background: rgba(56, 189, 248, 0.5);
-  width: 4px !important;
-  margin-left: 3px;
+.loopscope-line-bracket::before,
+.loopscope-line-bracket::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 6px;
+  height: 2px;
+  background: rgb(var(--stack));
+}
+.loopscope-line-bracket::before {
+  top: 0;
+}
+.loopscope-line-bracket::after {
+  bottom: 0;
+}
+/* A whisper-faint tint on the active content line. */
+.loopscope-line-content {
+  background: linear-gradient(90deg, rgb(var(--stack) / 0.1), rgb(var(--stack) / 0) 60%);
+}
+
+/* ---------------------------------------------------------------------------
+   Signal pulse travelling along an SVG connection path (offset-path).
+--------------------------------------------------------------------------- */
+@keyframes signalTravel {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+.signal-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 9999px;
+  offset-rotate: 0deg;
+  pointer-events: none;
+  will-change: offset-distance;
+}
+
+/* Corner registration tick used on panels / the schematic sheet. */
+.reg-tick {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-color: rgb(var(--ink) / 0.45);
+  pointer-events: none;
 }
